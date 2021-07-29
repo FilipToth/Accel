@@ -93,6 +93,8 @@ namespace Alto.CodeAnalysis.Syntax
         {
             if (Current.Kind == SyntaxKind.FunctionKeyword)
                 return ParseFunctionDeclaration();
+            else if (Current.Kind == SyntaxKind.ClassKeyword)
+                return ParseClassDeclaration();
             
             return ParseGlobalStatement();
         }
@@ -117,8 +119,45 @@ namespace Alto.CodeAnalysis.Syntax
 
             return new FunctionDeclarationSyntax(_tree, keyword, identifier, openParenthesis, parameters, closedParenthesis, type, body);
         }
+        
+        private MemberSyntax ParseClassDeclaration()
+        {
+            var keyword = MatchToken(SyntaxKind.ClassKeyword);
+            var identifier = MatchToken(SyntaxKind.IdentifierToken);
+            var body = ParseClassBodyStatement();
 
+            return new ClassDeclarationSyntax(_tree, keyword, identifier, body);
+        }
 
+        private ClassBodyStatementSyntax ParseClassBodyStatement()
+        {
+            var statements = ImmutableArray.CreateBuilder<StatementSyntax>();
+            var members = ImmutableArray.CreateBuilder<MemberSyntax>();
+            var openBraceToken = MatchToken(SyntaxKind.OpenBraceToken);
+
+            while (Current.Kind != SyntaxKind.EndOfFileToken && Current.Kind != SyntaxKind.CloseBraceToken)
+            {
+                var startToken = Current;
+
+                if (startToken.Kind == SyntaxKind.FunctionKeyword) 
+                {
+                    var declaration = ParseFunctionDeclaration();
+                    members.Add(declaration);
+                }
+                else
+                {
+                    var statement = ParseStatement();
+                    statements.Add(statement);
+                }
+
+                // Skip current token in order to avoide an infinite loop.
+                if (Current == startToken)
+                    NextToken();
+            }
+
+            var closeBraceToken = MatchToken(SyntaxKind.CloseBraceToken);
+            return new ClassBodyStatementSyntax(_tree, openBraceToken, members.ToImmutable(), statements.ToImmutableArray(), closeBraceToken);
+        }
 
         private SeparatedSyntaxList<ParameterSyntax> ParseParameterList()
         {
