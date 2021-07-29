@@ -45,6 +45,7 @@ namespace Alto.CodeAnalysis.Syntax
         TrueKeyword,
         VarKeyword,
         FunctionKeyword,
+        ClassKeyword,
         LetKeyword,
         IfKeyword,
         ElseKeyword,
@@ -61,6 +62,7 @@ namespace Alto.CodeAnalysis.Syntax
         CompilationUnit,
         GlobalStatement,
         FunctionDeclaration,
+        ClassDeclaration,
         ElseClause,
         TypeClause,
         Parameter,
@@ -86,5 +88,6 @@ namespace Alto.CodeAnalysis.Syntax
         ContinueStatement,
         ReturnStatement,
         ImportStatement,
+        ClassBodyStatementSyntax,
     }
 }
