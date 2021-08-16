@@ -6,6 +6,7 @@ namespace Alto.CodeAnalysis.Symbols
         LocalVariable,
         Type,
         Function,
-        Parameter
+        Parameter,
+        Class
     }
 }

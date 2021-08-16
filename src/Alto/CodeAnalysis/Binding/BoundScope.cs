@@ -21,6 +21,8 @@ namespace Alto.CodeAnalysis.Binding
 
         public bool TryDeclareFunction(FunctionSymbol function) => TryDeclareSymbol(function);
 
+        public bool TryDeclareClass(ClassSymbol classSymbol) => TryDeclareSymbol(classSymbol);
+
         private bool TryDeclareSymbol<TSymbol>(TSymbol symbol)
             where TSymbol : Symbol
         {
@@ -44,6 +46,8 @@ namespace Alto.CodeAnalysis.Binding
         public ImmutableArray<VariableSymbol> GetDeclaredVariables() => GetDeclaredSymbols<VariableSymbol>();
 
         public ImmutableArray<FunctionSymbol> GetDeclaredFunctions() => GetDeclaredSymbols<FunctionSymbol>();
+
+        public ImmutableArray<ClassSymbol> GetDeclaredClasses() => GetDeclaredSymbols<ClassSymbol>();
 
         private ImmutableArray<TSymbol> GetDeclaredSymbols<TSymbol>()
             where TSymbol : Symbol

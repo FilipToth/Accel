@@ -79,6 +79,10 @@ namespace Alto.CodeAnalysis.Binding
                 var functionDeclarations = tree.Root.Members.OfType<FunctionDeclarationSyntax>();
                 foreach (var function in functionDeclarations)
                     binder.BindFunctionDeclaration(function, tree);
+
+                var classDeclarations = tree.Root.Members.OfType<ClassDeclarationSyntax>();
+                foreach (var cls in classDeclarations)
+                    binder.BindClassDeclaration(cls, tree);
             }
 
             var globalStatements = syntaxTrees.SelectMany(t => t.Root.Members).OfType<GlobalStatementSyntax>();
@@ -177,6 +181,40 @@ namespace Alto.CodeAnalysis.Binding
             }
 
             return function;
+        }
+
+        private ClassSymbol BindClassDeclaration(ClassDeclarationSyntax syntax, SyntaxTree tree, bool declare = true)
+        {
+            var body = syntax.Body;
+
+            var functionDeclarations = body.Members.OfType<FunctionDeclarationSyntax>();
+            var functions = new List<FunctionSymbol>();
+            var functionBodies = new List<BoundBlockStatement>();
+
+            foreach (var functionDeclaration in functionDeclarations)
+            {
+                var function = BindFunctionDeclaration(functionDeclaration, tree, false);
+
+                var binder = new Binder(_scope, function, checkCallsiteTrees: true, importedTrees: _importedTrees);
+                var boundBody = binder.BindBlockStatement(functionDeclaration.Body);
+
+                functions.Add(function);
+                functionBodies.Add(boundBody);
+            }
+
+            var @class = new ClassSymbol(syntax.Identifier.Text, 
+                                         functions.ToImmutableArray(), 
+                                         functionBodies.ToImmutableArray(), 
+                                         tree);
+
+            if (declare) 
+            {
+                var sucess = _scope.TryDeclareClass(@class);
+                if (syntax.Identifier.Text != null && !sucess) 
+                    _diagnostics.ReportSymbolAlreadyDeclared(syntax.Identifier.Location, @class.Name);  
+            }
+
+            return @class;
         }
 
         private static BoundScope CreateParentScope(BoundGlobalScope previous)
@@ -395,7 +433,7 @@ namespace Alto.CodeAnalysis.Binding
             return new BoundImportStatement(importTree, name);
         }
 
-        private BoundStatement BindBlockStatement(BlockStatementSyntax syntax, IEnumerable<VariableSymbol> declareAdditionalVariables = null)
+        private BoundBlockStatement BindBlockStatement(BlockStatementSyntax syntax, IEnumerable<VariableSymbol> declareAdditionalVariables = null)
         {
             var statements = ImmutableArray.CreateBuilder<BoundStatement>();
             _scope = new BoundScope(_scope);
