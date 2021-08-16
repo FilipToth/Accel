@@ -96,6 +96,7 @@ namespace Alto.CodeAnalysis.Binding
 
             var functions = binder._scope.GetDeclaredFunctions();
             var variables = binder._scope.GetDeclaredVariables();
+            var classes = binder._scope.GetDeclaredClasses();
 
             var diagnostics = binder.Diagnostics.ToImmutableArray();
             
@@ -103,7 +104,7 @@ namespace Alto.CodeAnalysis.Binding
                 diagnostics = diagnostics.InsertRange(0, previous.Diagnostics);
 
             localFunctions = binder._localFunctions;
-            return new BoundGlobalScope(previous, diagnostics, functions, variables, 
+            return new BoundGlobalScope(previous, diagnostics, functions, variables, classes,
                                         statementBuilder.ToImmutable(), binder._importedTrees);
         }
 

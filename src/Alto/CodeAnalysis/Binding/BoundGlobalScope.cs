@@ -8,12 +8,14 @@ namespace Alto.CodeAnalysis.Binding
     internal sealed class BoundGlobalScope
     {
         public BoundGlobalScope(BoundGlobalScope previous, ImmutableArray<Diagnostic> diagnostics, 
-            ImmutableArray<FunctionSymbol> functions, ImmutableArray<VariableSymbol> variables, 
-            ImmutableArray<BoundStatement> statements, Dictionary<SyntaxTree, IEnumerable<SyntaxTree>> importedTrees)
+            ImmutableArray<FunctionSymbol> functions, ImmutableArray<VariableSymbol> variables,
+            ImmutableArray<ClassSymbol> classes, ImmutableArray<BoundStatement> statements, 
+            Dictionary<SyntaxTree, IEnumerable<SyntaxTree>> importedTrees)
         {
             Previous = previous;
             Diagnostics = diagnostics;
-            Functions = functions;  
+            Functions = functions;
+            Classes = classes;
             Variables = variables;
             Statements = statements;
             ImportedTrees = importedTrees;
@@ -23,6 +25,7 @@ namespace Alto.CodeAnalysis.Binding
         public ImmutableArray<Diagnostic> Diagnostics { get; }
         public ImmutableArray<FunctionSymbol> Functions { get; }
         public ImmutableArray<VariableSymbol> Variables { get; }
+        public ImmutableArray<ClassSymbol> Classes;
         public ImmutableArray<BoundStatement> Statements { get; }
         public Dictionary<SyntaxTree, IEnumerable<SyntaxTree>> ImportedTrees { get; }
     }

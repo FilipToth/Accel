@@ -34,6 +34,7 @@ namespace Alto.CodeAnalysis
         public ImmutableArray<SyntaxTree> SyntaxTrees { get; }
         public ImmutableArray<FunctionSymbol> Functions => GlobalScope.Functions;
         public ImmutableArray<VariableSymbol> Variables => GlobalScope.Variables;
+        public ImmutableArray<ClassSymbol> Classes => GlobalScope.Classes;
         public SyntaxTree CoreSyntax { get; }
 
         internal Dictionary<BoundScope, List<Tuple<FunctionSymbol, BoundBlockStatement>>> LocalFunctions 
@@ -142,6 +143,10 @@ namespace Alto.CodeAnalysis
                 foreach (var variable in compilation.Variables)
                     if (seenNames.Add(variable.Name))
                         yield return variable;
+
+                foreach (var @class in compilation.Classes)
+                    if (seenNames.Add(@class.Name))
+                        yield return @class;
                 
                 compilation = compilation.Previous;
             }

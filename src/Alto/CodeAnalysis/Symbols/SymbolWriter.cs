@@ -26,6 +26,9 @@ namespace Alto.CodeAnalysis.Symbols
                 case SymbolKind.Parameter:
                     WriteParameterTo((ParameterSymbol)symbol, writer);
                     break;
+                case SymbolKind.Class:
+                    WriteClassTo((ClassSymbol)symbol, writer);
+                    break;
                 default:
                     throw new Exception($"Unexpected symbol: {symbol.Kind}");
             }
@@ -85,6 +88,14 @@ namespace Alto.CodeAnalysis.Symbols
                 writer.WriteWhitespace();
                 symbol.Type.WriteTo(writer);
             }
+        }
+
+        private static void WriteClassTo(ClassSymbol symbol, TextWriter writer)
+        {
+            writer.WriteKeyword(SyntaxKind.ClassKeyword);
+            writer.WriteWhitespace();
+            writer.WriteIdentifier(symbol.Name);
+            writer.WriteWhitespace();
         }
 
         private static void WriteParameterTo(ParameterSymbol symbol, TextWriter writer)
