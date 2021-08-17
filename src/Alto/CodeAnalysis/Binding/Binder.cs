@@ -112,6 +112,7 @@ namespace Alto.CodeAnalysis.Binding
         {
             var parentScope = CreateParentScope(globalScope);
             var functionBodies = ImmutableDictionary.CreateBuilder<FunctionSymbol, BoundBlockStatement>();
+            var classBodies = ImmutableDictionary.CreateBuilder<ClassSymbol, BoundBlockStatement>();
             var diagnostics = new DiagnosticBag();
 
             var scope = globalScope;
@@ -119,7 +120,6 @@ namespace Alto.CodeAnalysis.Binding
             {
                 foreach (var function in scope.Functions)
                 {
-                    // if we're getting 'missing import' errors, this is where we've gone wrong... in checkCallSiteTrees: true
                     var binder = new Binder(parentScope, function, checkCallsiteTrees: true, globalScope.ImportedTrees);
 
                     var body = binder.BindStatement(function.Declaration.Body);
@@ -132,12 +132,24 @@ namespace Alto.CodeAnalysis.Binding
                     diagnostics.AddRange(binder.Diagnostics);
                 }
 
+                foreach (var @class in scope.Classes)
+                {
+                    var binder = new Binder(parentScope, null, checkCallsiteTrees: true, globalScope.ImportedTrees);
+
+                    var body = binder.BindStatement(@class.Declaration.Body);
+                    var loweredBody = Lowerer.Lower(body);
+                    
+                    classBodies.Add(@class, loweredBody);
+                    diagnostics.AddRange(binder.Diagnostics);
+                }
+
                 scope = scope.Previous;
             }
             
             var statement = Lowerer.Lower(new BoundBlockStatement(globalScope.Statements));
-            
-            var program = new BoundProgram(diagnostics, functionBodies.ToImmutable(), statement);
+            var program = new BoundProgram(diagnostics, 
+                                           functionBodies.ToImmutable(), classBodies.ToImmutable(), 
+                                           statement);
             return program;
         }
 
@@ -187,25 +199,8 @@ namespace Alto.CodeAnalysis.Binding
         private ClassSymbol BindClassDeclaration(ClassDeclarationSyntax syntax, SyntaxTree tree, bool declare = true)
         {
             var body = syntax.Body;
-
-            var functionDeclarations = body.Members.OfType<FunctionDeclarationSyntax>();
-            var functions = new List<FunctionSymbol>();
-            var functionBodies = new List<BoundBlockStatement>();
-
-            foreach (var functionDeclaration in functionDeclarations)
-            {
-                var function = BindFunctionDeclaration(functionDeclaration, tree, false);
-
-                var binder = new Binder(_scope, function, checkCallsiteTrees: true, importedTrees: _importedTrees);
-                var boundBody = binder.BindBlockStatement(functionDeclaration.Body);
-
-                functions.Add(function);
-                functionBodies.Add(boundBody);
-            }
-
             var @class = new ClassSymbol(syntax.Identifier.Text, 
-                                         functions.ToImmutableArray(), 
-                                         functionBodies.ToImmutableArray(), 
+                                         syntax, 
                                          tree);
 
             if (declare) 
@@ -216,6 +211,25 @@ namespace Alto.CodeAnalysis.Binding
             }
 
             return @class;
+        }
+
+        private BoundStatement BindClassBodyStatement(ClassBodyStatementSyntax syntax)
+        {
+            var functions = new List<FunctionSymbol>();
+            var functionBodies = new Dictionary<FunctionSymbol, BoundBlockStatement>();
+            foreach (var functionDeclaration in syntax.Members.OfType<FunctionDeclarationSyntax>())
+            {
+                var function = BindFunctionDeclaration(functionDeclaration, syntax.SyntaxTree, declare: false);
+                var binder = new Binder(_scope, function, checkCallsiteTrees: CheckCallsiteTrees, importedTrees: _importedTrees);
+
+                var body = binder.BindStatement(functionDeclaration.Body);
+                var loweredBody = Lowerer.Lower(body);
+
+                functions.Add(function);
+                functionBodies.Add(function, loweredBody);
+            }
+
+            return new BoundClassBodyStatement(functions.ToImmutableList(), functionBodies.ToImmutableDictionary());
         }
 
         private static BoundScope CreateParentScope(BoundGlobalScope previous)
@@ -262,27 +276,29 @@ namespace Alto.CodeAnalysis.Binding
             switch (syntax.Kind)
             {
                 case SyntaxKind.BlockStatement:
-                    return BindBlockStatement((BlockStatementSyntax) syntax);
+                    return BindBlockStatement((BlockStatementSyntax)syntax);
                 case SyntaxKind.ExpressionStatement:
-                    return BindExpressionStatement((ExpressionStatementSyntax) syntax);
+                    return BindExpressionStatement((ExpressionStatementSyntax)syntax);
                 case SyntaxKind.VariableDeclaration:
-                    return BindVariable((VariableDeclarationSyntax) syntax);
+                    return BindVariable((VariableDeclarationSyntax)syntax);
                 case SyntaxKind.IfStatement:
-                    return BindIfStatement((IfStatementSyntax) syntax);
+                    return BindIfStatement((IfStatementSyntax)syntax);
                 case SyntaxKind.WhileStatement:
-                    return BindWhileStatement((WhileStatementSyntax) syntax);
+                    return BindWhileStatement((WhileStatementSyntax)syntax);
                 case SyntaxKind.DoWhileStatement:
-                    return BindDoWhileStatement((DoWhileStatementSyntax) syntax);
+                    return BindDoWhileStatement((DoWhileStatementSyntax)syntax);
                 case SyntaxKind.ForStatement:
-                    return BindForStatement((ForStatementSyntax) syntax);
+                    return BindForStatement((ForStatementSyntax)syntax);
                 case SyntaxKind.BreakStatement:
-                    return BindBreakStatement((BreakStatementSyntax) syntax);
+                    return BindBreakStatement((BreakStatementSyntax)syntax);
                 case SyntaxKind.ContinueStatement:
-                    return BindContinueStatement((ContinueStatementSyntax) syntax);
+                    return BindContinueStatement((ContinueStatementSyntax)syntax);
                 case SyntaxKind.ReturnStatement:
-                    return BindReturnStatement((ReturnStatementSyntax) syntax);
+                    return BindReturnStatement((ReturnStatementSyntax)syntax);
                 case SyntaxKind.ImportStatement:
-                    return BindImportStatement((ImportStatementSyntax) syntax);
+                    return BindImportStatement((ImportStatementSyntax)syntax);
+                case SyntaxKind.ClassBodyStatement:
+                    return BindClassBodyStatement((ClassBodyStatementSyntax)syntax);
                 default:
                     throw new Exception($"Unexpected syntax {syntax.Kind}");
             }

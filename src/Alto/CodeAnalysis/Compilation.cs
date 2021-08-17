@@ -115,6 +115,11 @@ namespace Alto.CodeAnalysis
                     functionBody.Key.WriteTo(writer);
                     functionBody.Value.WriteTo(writer);
                 }
+
+                foreach (var classBody in program.ClassBodies)
+                {
+                    
+                }
             }
         }
 

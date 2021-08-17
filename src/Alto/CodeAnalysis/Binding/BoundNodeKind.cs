@@ -30,5 +30,6 @@ namespace Alto.CodeAnalysis.Binding
         LabelStatement,
         ReturnStatement,
         ImportStatement,
+        ClassBodyStatement,
     }
 }

@@ -88,6 +88,6 @@ namespace Alto.CodeAnalysis.Syntax
         ContinueStatement,
         ReturnStatement,
         ImportStatement,
-        ClassBodyStatementSyntax,
+        ClassBodyStatement,
     }
 }

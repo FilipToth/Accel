@@ -7,18 +7,15 @@ namespace Alto.CodeAnalysis.Symbols
 
     public sealed class ClassSymbol : Symbol
     {
-        internal ClassSymbol(string name, ImmutableArray<FunctionSymbol> functions, 
-                           ImmutableArray<BoundBlockStatement> functionBodies, SyntaxTree tree = null)
+        internal ClassSymbol(string name, ClassDeclarationSyntax declaration, SyntaxTree tree = null)
             : base(name)
         {
-            Functions = functions;
-            FunctionBodies = functionBodies;
+            Declaration = declaration;
             Tree = tree;
         }
 
         public override SymbolKind Kind => SymbolKind.Class;
-        public ImmutableArray<FunctionSymbol> Functions;
-        internal ImmutableArray<BoundBlockStatement> FunctionBodies;
+        public ClassDeclarationSyntax Declaration { get; }
         public SyntaxTree Tree;
 
         public override string ToString() => Name;

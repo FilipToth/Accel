@@ -20,6 +20,6 @@ namespace Alto.CodeAnalysis.Syntax
         public ImmutableArray<StatementSyntax> Statements { get; }
         public SyntaxToken ClosedBraceSyntax { get; }
 
-        public override SyntaxKind Kind => SyntaxKind.ClassBodyStatementSyntax;
+        public override SyntaxKind Kind => SyntaxKind.ClassBodyStatement;
     }
 }
