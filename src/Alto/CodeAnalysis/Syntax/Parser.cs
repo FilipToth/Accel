@@ -537,7 +537,20 @@ namespace Alto.CodeAnalysis.Syntax
         private ExpressionSyntax ParseNameExpression()
         {
             var identifierToken = MatchToken(SyntaxKind.IdentifierToken);
-            return new NameExpressionSyntax(_tree, identifierToken);
+            var identifiers = new List<SyntaxToken>();
+            if (Current.Kind == SyntaxKind.FullStopToken)
+            {
+                var fullStop = MatchToken(SyntaxKind.FullStopToken);
+                while (Peek(1).Kind == SyntaxKind.FullStopToken)
+                {
+                    var identifier = MatchToken(SyntaxKind.IdentifierToken);
+                    identifiers.Add(identifier);
+
+                    var stop = MatchToken(SyntaxKind.FullStopToken);
+                }
+            }
+
+            return new NameExpressionSyntax(_tree, identifierToken, identifiers.ToImmutableArray());
         }
 
     }

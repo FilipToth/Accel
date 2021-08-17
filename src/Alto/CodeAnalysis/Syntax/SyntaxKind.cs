@@ -7,6 +7,7 @@ namespace Alto.CodeAnalysis.Syntax
         EndOfFileToken,
         WhitespaceToken,
         IdentifierToken,
+        FullStopToken,
 
         //Data-Type Tokens
         NumberToken,
