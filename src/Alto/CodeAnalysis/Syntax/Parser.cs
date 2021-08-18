@@ -494,19 +494,32 @@ namespace Alto.CodeAnalysis.Syntax
 
         private ExpressionSyntax ParseNameOrCallExpression()
         {
-            if (Peek(0).Kind == SyntaxKind.IdentifierToken && Peek(1).Kind == SyntaxKind.OpenParenthesesToken)
-                return ParseCallExpression();
+            var identifiers = new List<SyntaxToken>();
+            if (Current.Kind == SyntaxKind.IdentifierToken && Peek(1).Kind == SyntaxKind.FullStopToken)
+            {
+                var initialIdentifier = MatchToken(SyntaxKind.IdentifierToken);
+                identifiers.Add(initialIdentifier);
+                while (Peek(1).Kind == SyntaxKind.FullStopToken)
+                {
+                    var stop = MatchToken(SyntaxKind.FullStopToken);
 
-            return ParseNameExpression();
+                    var identifier = MatchToken(SyntaxKind.IdentifierToken);
+                    identifiers.Add(identifier);
+                }
+            }
+
+            if (Peek(0).Kind == SyntaxKind.IdentifierToken && Peek(1).Kind == SyntaxKind.OpenParenthesesToken)
+                return ParseCallExpression(identifiers);
+
+            return ParseNameExpression(identifiers);
         }
 
-        private ExpressionSyntax ParseCallExpression()
+        private ExpressionSyntax ParseCallExpression(List<SyntaxToken> identifiers)
         {
-            var identifier = MatchToken(SyntaxKind.IdentifierToken);
             var openParenthesisToken = MatchToken(SyntaxKind.OpenParenthesesToken);
             var args = ParseArguments();
             var closedParenthesisToken = MatchToken(SyntaxKind.CloseParenthesesToken);
-            return new CallExpressionSyntax(_tree, identifier, openParenthesisToken, args, closedParenthesisToken);
+            return new CallExpressionSyntax(_tree, identifiers.ToImmutableArray(), openParenthesisToken, args, closedParenthesisToken);
         }
 
         private SeparatedSyntaxList<ExpressionSyntax> ParseArguments()
@@ -514,7 +527,7 @@ namespace Alto.CodeAnalysis.Syntax
             var nodesAndSeparators = ImmutableArray.CreateBuilder<SyntaxNode>();
 
             var parseNextArgument = true;
-            while (parseNextArgument && 
+            while (parseNextArgument &&
                    Current.Kind != SyntaxKind.CloseParenthesesToken &&
                    Current.Kind != SyntaxKind.EndOfFileToken)
             {
@@ -534,23 +547,9 @@ namespace Alto.CodeAnalysis.Syntax
             return new SeparatedSyntaxList<ExpressionSyntax>(nodesAndSeparators.ToImmutable());
         }
 
-        private ExpressionSyntax ParseNameExpression()
+        private ExpressionSyntax ParseNameExpression(List<SyntaxToken> identifiers = null)
         {
-            var identifierToken = MatchToken(SyntaxKind.IdentifierToken);
-            var identifiers = new List<SyntaxToken>();
-            if (Current.Kind == SyntaxKind.FullStopToken)
-            {
-                var fullStop = MatchToken(SyntaxKind.FullStopToken);
-                while (Peek(1).Kind == SyntaxKind.FullStopToken)
-                {
-                    var identifier = MatchToken(SyntaxKind.IdentifierToken);
-                    identifiers.Add(identifier);
-
-                    var stop = MatchToken(SyntaxKind.FullStopToken);
-                }
-            }
-
-            return new NameExpressionSyntax(_tree, identifierToken, identifiers.ToImmutableArray());
+            return new NameExpressionSyntax(_tree, identifiers.ToImmutableArray());
         }
 
     }

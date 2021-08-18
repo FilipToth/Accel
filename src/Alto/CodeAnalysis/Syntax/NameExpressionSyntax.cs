@@ -1,18 +1,22 @@
 using System.Collections.Immutable;
+using System.Linq;
 
 namespace Alto.CodeAnalysis.Syntax
 {
     public sealed class NameExpressionSyntax : ExpressionSyntax
     {
-        internal NameExpressionSyntax(SyntaxTree syntaxTree, SyntaxToken identifierToken, ImmutableArray<SyntaxToken>? followingIdentifiers = null)
+        internal NameExpressionSyntax(SyntaxTree syntaxTree, ImmutableArray<SyntaxToken> identifiers)
             : base(syntaxTree)
         {
-            IdentifierToken = identifierToken;
-            FollowingIdentifiers = followingIdentifiers;
+            Identifiers = identifiers;
         }
 
         public override SyntaxKind Kind => SyntaxKind.NameExpression;
-        public SyntaxToken IdentifierToken { get; }
-        public ImmutableArray<SyntaxToken>? FollowingIdentifiers { get; }
+        public ImmutableArray<SyntaxToken> Identifiers { get; }
+        public SyntaxToken IdentifierToken { 
+            get {
+                return Identifiers.FirstOrDefault();
+            } 
+        }
     }
 }
