@@ -259,7 +259,8 @@ namespace Alto
 
             var syntaxTree = SyntaxTree.Parse(text);
 
-            if (syntaxTree.Root.Members.Last().GetLastToken().IsMissing)
+            var last = syntaxTree.Root.Members.Last().GetLastToken();
+            if (last != null && last.IsMissing)
                 return false;
 
             return true;

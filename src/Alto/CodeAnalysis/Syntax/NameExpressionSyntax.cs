@@ -13,10 +13,5 @@ namespace Alto.CodeAnalysis.Syntax
 
         public override SyntaxKind Kind => SyntaxKind.NameExpression;
         public ImmutableArray<SyntaxToken> Identifiers { get; }
-        public SyntaxToken IdentifierToken { 
-            get {
-                return Identifiers.FirstOrDefault();
-            } 
-        }
     }
 }

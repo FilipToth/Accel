@@ -582,12 +582,16 @@ namespace Alto.CodeAnalysis.Binding
 
         private BoundExpression BindNameExpression(NameExpressionSyntax syntax) 
         {
-            var name = syntax.IdentifierToken.Text;
+            if (syntax.Identifiers.Count() == 0)
+                return new BoundErrorExpression();
+            
+            var identifier = syntax.Identifiers.FirstOrDefault();
+            var name = identifier.Text;
  
-            if (syntax.IdentifierToken.IsMissing)
+            if (identifier.IsMissing)
                 return new BoundErrorExpression();
                 
-            var variable = BindVariableReference(syntax.IdentifierToken);
+            var variable = BindVariableReference(identifier);
             if (variable == null)
                 return new BoundErrorExpression();
 
@@ -654,7 +658,9 @@ namespace Alto.CodeAnalysis.Binding
 
         private BoundExpression BindCallExpression(CallExpressionSyntax syntax)
         {
-            if (syntax.Arguments.Count == 1 && LookupTypeConversion(syntax.Identifier.Text) is TypeSymbol type)
+            var identifier = syntax.Identifiers.FirstOrDefault();
+            
+            if (syntax.Arguments.Count == 1 && LookupTypeConversion(identifier.Text) is TypeSymbol type)
                 return BindConversion(syntax.Arguments[0], type, allowExplicit: true);
 
             var boundArguments = ImmutableArray.CreateBuilder<BoundExpression>();
@@ -665,24 +671,24 @@ namespace Alto.CodeAnalysis.Binding
                 boundArguments.Add(boundArgument);
             }
 
-            var symbol = LookupFunction(syntax.Identifier.Text);
+            var symbol = LookupFunction(identifier.Text);
             if (symbol == null)
             {
-                _diagnostics.ReportUndefinedFunction(syntax.Identifier.Location, syntax.Identifier.Text);
+                _diagnostics.ReportUndefinedFunction(identifier.Location, identifier.Text);
                 return new BoundErrorExpression();
             }
 
             var function = symbol as FunctionSymbol;
             if (function == null)
             {
-                _diagnostics.ReportNotAFunction(syntax.Identifier.Location, syntax.Identifier.Text);
+                _diagnostics.ReportNotAFunction(identifier.Location, identifier.Text);
                 return new BoundErrorExpression();
             }
             
             // if function.Tree == null, it's a built-in function
             if (CheckCallsiteTrees && function.Tree != null && !IsImported(syntax.SyntaxTree, function.Tree))
             {
-                _diagnostics.MissingImportStatement(syntax.Identifier.Location, function.Name, function.Tree.Root.Location.FileName);
+                _diagnostics.MissingImportStatement(identifier.Location, function.Name, function.Tree.Root.Location.FileName);
                 return new BoundErrorExpression();
             }
 

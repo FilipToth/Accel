@@ -60,8 +60,12 @@ namespace Alto.CodeAnalysis.Syntax
         {
             if (this is SyntaxToken token)
                 return token;
-
-            return GetChildren().Last().GetLastToken();
+            
+            var children = GetChildren();
+            if (children.Count() > 0)
+                return children.Last().GetLastToken();
+            else
+                return null;
         }
 
         public void WriteTo(TextWriter writer)

@@ -336,13 +336,11 @@ namespace Alto.Tests.CodeAnalysis
         public void Evaluator_InvokeFunctionArguments_Reports_NoInfiniteLoop()
         {
             var text = @"
-                print(""Hi""[[=]][)]
+                print(""Hi""[=])
             ";
 
             var diagnostics = @"
                 Unexpected token <EqualsToken>, expected <CloseParenthesesToken>.
-                Unexpected token <EqualsToken>, expected <IdentifierToken>.
-                Unexpected token <CloseParenthesesToken>, expected <IdentifierToken>.
             ";
 
             AssertDiagnostics(text, diagnostics);
@@ -352,7 +350,7 @@ namespace Alto.Tests.CodeAnalysis
         public void Evaluator_FunctionParameters_Reports_NoInfiniteLoop()
         {
             var text = @"
-                function test(name: string[[[*]]][[)]]
+                function test(name: string[[*]])
                 {
                     print(""Hi "" + name + ""!"" )
                 }[]
@@ -361,9 +359,6 @@ namespace Alto.Tests.CodeAnalysis
             var diagnostics = @"
                 Unexpected token <StarToken>, expected <CloseParenthesesToken>.
                 Unexpected token <StarToken>, expected <OpenBraceToken>.
-                Unexpected token <StarToken>, expected <IdentifierToken>.
-                Unexpected token <CloseParenthesesToken>, expected <IdentifierToken>.
-                Unexpected token <CloseParenthesesToken>, expected <IdentifierToken>.
                 Unexpected token <EndOfFileToken>, expected <CloseBraceToken>.
             ";
 
