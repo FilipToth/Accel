@@ -495,7 +495,7 @@ namespace Alto.CodeAnalysis.Syntax
         private ExpressionSyntax ParseNameOrCallExpression()
         {
             var identifiers = new List<SyntaxToken>();
-            if (Current.Kind == SyntaxKind.IdentifierToken && Peek(1).Kind == SyntaxKind.FullStopToken)
+            if (Current.Kind == SyntaxKind.IdentifierToken)
             {
                 var initialIdentifier = MatchToken(SyntaxKind.IdentifierToken);
                 identifiers.Add(initialIdentifier);
@@ -508,7 +508,7 @@ namespace Alto.CodeAnalysis.Syntax
                 }
             }
 
-            if (Peek(0).Kind == SyntaxKind.IdentifierToken && Peek(1).Kind == SyntaxKind.OpenParenthesesToken)
+            if (Current.Kind == SyntaxKind.OpenParenthesesToken)
                 return ParseCallExpression(identifiers);
 
             return ParseNameExpression(identifiers);
